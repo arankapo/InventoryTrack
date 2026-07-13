@@ -1,0 +1,133 @@
+// InvenTrack — Prisma schema
+// Multi-warehouse inventory management with role-based access control
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum Role {
+  ADMIN
+  MANAGER
+  STAFF
+}
+
+enum MovementType {
+  IN
+  OUT
+  TRANSFER
+  ADJUSTMENT
+}
+
+model User {
+  id          String    @id @default(uuid())
+  name        String
+  email       String    @unique
+  password    String
+  role        Role      @default(STAFF)
+  isActive    Boolean   @default(true)
+
+  // Manager/Staff are scoped to one warehouse. Admin leaves this null (sees all).
+  warehouseId String?
+  warehouse   Warehouse? @relation(fields: [warehouseId], references: [id])
+
+  movements   StockMovement[]
+
+  createdAt   DateTime  @default(now())
+  updatedAt   DateTime  @updatedAt
+
+  @@index([warehouseId])
+}
+
+model Warehouse {
+  id        String   @id @default(uuid())
+  name      String
+  code      String   @unique
+  address   String?
+  isActive  Boolean  @default(true)
+
+  users     User[]
+  stocks    Stock[]
+  movements StockMovement[]           @relation("MovementWarehouse")
+  incomingTransfers StockMovement[]   @relation("MovementDestination")
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Category {
+  id          String    @id @default(uuid())
+  name        String    @unique
+  description String?
+  products    Product[]
+
+  createdAt   DateTime  @default(now())
+}
+
+model Product {
+  id           String   @id @default(uuid())
+  sku          String   @unique
+  name         String
+  description  String?
+  unit         String   @default("pcs")
+  price        Int      @default(0) // stored in whole Rupiah
+  reorderPoint Int      @default(10)
+  isActive     Boolean  @default(true)
+
+  categoryId   String?
+  category     Category? @relation(fields: [categoryId], references: [id])
+
+  stocks       Stock[]
+  movements    StockMovement[]
+
+  createdAt    DateTime @default(now())
+  updatedAt    DateTime @updatedAt
+
+  @@index([categoryId])
+}
+
+// Current quantity of a product at a specific warehouse
+model Stock {
+  id          String    @id @default(uuid())
+  productId   String
+  warehouseId String
+  quantity    Int       @default(0)
+
+  product     Product   @relation(fields: [productId], references: [id], onDelete: Cascade)
+  warehouse   Warehouse @relation(fields: [warehouseId], references: [id], onDelete: Cascade)
+
+  updatedAt   DateTime  @updatedAt
+
+  @@unique([productId, warehouseId])
+  @@index([warehouseId])
+}
+
+// Immutable audit log of every stock change — powers the dashboard analytics
+model StockMovement {
+  id                     String        @id @default(uuid())
+  productId              String
+  warehouseId            String
+  type                   MovementType
+  quantity               Int
+  note                   String?
+
+  // Only set when type = TRANSFER (destination warehouse)
+  destinationWarehouseId String?
+  destinationWarehouse   Warehouse?    @relation("MovementDestination", fields: [destinationWarehouseId], references: [id])
+
+  userId                 String
+  user                   User          @relation(fields: [userId], references: [id])
+
+  product                Product       @relation(fields: [productId], references: [id])
+  warehouse              Warehouse     @relation("MovementWarehouse", fields: [warehouseId], references: [id])
+
+  createdAt              DateTime      @default(now())
+
+  @@index([warehouseId, createdAt])
+  @@index([productId])
+  @@index([createdAt])
+}

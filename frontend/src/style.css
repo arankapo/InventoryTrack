@@ -1,0 +1,79 @@
+@import url("https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800&family=IBM+Plex+Sans:wght@400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap");
+@import "tailwindcss";
+
+/* ---- InvenTrack design tokens ------------------------------------------
+   Palette: warehouse-console navy paired with signal amber (attention /
+   primary action), ledger teal (stock IN / positive) and stencil rust
+   (stock OUT / alert). Two purposeful accents tied to domain meaning,
+   not a single arbitrary highlight color.
+-------------------------------------------------------------------------- */
+@theme {
+  --font-display: "Barlow Condensed", sans-serif;
+  --font-sans: "IBM Plex Sans", ui-sans-serif, system-ui, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, monospace;
+
+  --color-ink-950: #0F151E;
+  --color-ink-900: #161F2B;
+  --color-ink-800: #1E2A38;
+  --color-ink-700: #29394A;
+  --color-ink-600: #3C5164;
+  --color-ink-500: #5C7286;
+  --color-ink-400: #8598A8;
+  --color-ink-300: #B4C2CC;
+  --color-ink-200: #D8E0E4;
+  --color-ink-100: #EDF1F2;
+  --color-paper: #F3EFE6;
+
+  --color-amber-500: #E8A33D;
+  --color-amber-400: #F0B75E;
+  --color-amber-600: #C7842A;
+
+  --color-teal-500: #4FA88A;
+  --color-teal-400: #6FC0A4;
+  --color-teal-600: #37806A;
+
+  --color-rust-500: #D1554A;
+  --color-rust-400: #DD7A70;
+  --color-rust-600: #AC3F36;
+}
+
+html, body, #app {
+  height: 100%;
+}
+
+body {
+  background-color: var(--color-ink-950);
+  color: var(--color-ink-100);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+* {
+  scrollbar-color: var(--color-ink-600) transparent;
+}
+
+:focus-visible {
+  outline: 2px solid var(--color-amber-400);
+  outline-offset: 2px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Stenciled warehouse-code badge — the recurring signature motif used for
+   warehouse codes (WH-JKT etc.) across sidebar, tables, and movement logs. */
+.stencil-badge {
+  font-family: var(--font-mono);
+  font-weight: 600;
+  letter-spacing: 0.09em;
+  text-transform: uppercase;
+  border: 1.5px solid currentColor;
+  border-radius: 3px;
+  padding: 0.1rem 0.45rem;
+  display: inline-block;
+}
